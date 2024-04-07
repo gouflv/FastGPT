@@ -1,13 +1,13 @@
-import { useDatasetStore } from '@/web/core/dataset/store/dataset';
+import React, { useMemo } from 'react';
 import { Box, Button, Flex, IconButton } from '@chakra-ui/react';
 import MyIcon from '@fastgpt/web/components/common/Icon';
-import { useMyStep } from '@fastgpt/web/hooks/useStep';
 import { useTranslation } from 'next-i18next';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import React, { useMemo } from 'react';
 import { TabEnum } from '../../index';
+import { useMyStep } from '@fastgpt/web/hooks/useStep';
+import dynamic from 'next/dynamic';
 import Provider from './Provider';
+import { useDatasetStore } from '@/web/core/dataset/store/dataset';
 
 const FileLocal = dynamic(() => import('./diffSource/FileLocal'));
 const FileLink = dynamic(() => import('./diffSource/FileLink'));
@@ -22,7 +22,7 @@ export enum ImportDataSourceEnum {
 
   tableLocal = 'tableLocal',
 
-  webdav = 'webdav'
+  webDAV = 'webdav'
 }
 
 const ImportDataset = () => {
@@ -79,7 +79,7 @@ const ImportDataset = () => {
         title: t('core.dataset.import.Upload data')
       }
     ],
-    [ImportDataSourceEnum.webdav]: [
+    [ImportDataSourceEnum.webDAV]: [
       {
         title: t('core.dataset.import.Select file')
       },
@@ -100,7 +100,7 @@ const ImportDataset = () => {
     if (source === ImportDataSourceEnum.fileLink) return FileLink;
     if (source === ImportDataSourceEnum.fileCustom) return FileCustomText;
     if (source === ImportDataSourceEnum.tableLocal) return TableLocal;
-    if (source === ImportDataSourceEnum.webdav) return WebDAVImport;
+    if (source === ImportDataSourceEnum.webDAV) return WebDAVImport;
   }, [source]);
 
   return ImportComponent ? (

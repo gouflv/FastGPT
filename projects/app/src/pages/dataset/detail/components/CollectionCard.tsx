@@ -468,7 +468,7 @@ const CollectionCard = () => {
                           query: {
                             ...router.query,
                             currentTab: TabEnum.import,
-                            source: ImportDataSourceEnum.webdav
+                            source: ImportDataSourceEnum.webDAV
                           }
                         })
                     }

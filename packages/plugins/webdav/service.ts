@@ -9,7 +9,7 @@ export async function fetchWebDAVFiles(dir = '/') {
     // glob: '*.{pdf,csc,doc,docx,txt,md}'
   });
 
-  console.log('fetchWebDAVFiles', JSON.stringify(res, null, 2));
+  // console.log('fetchWebDAVFiles', JSON.stringify(res, null, 2));
 
   return res;
 }

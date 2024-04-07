@@ -1,3 +1,4 @@
+import MyBox from '@/components/common/MyBox';
 import { GET } from '@/web/common/api/request';
 import { ImportDataComponentProps } from '@/web/core/dataset/type';
 import { Table, TableContainer, Tbody, Td, Th, Thead, Toast, Tr } from '@chakra-ui/react';
@@ -22,7 +23,7 @@ const WebDAVImport = ({ activeStep, goToNext }: ImportDataComponentProps) => {
   const [pathArr, setPathArr] = useState<string[]>(['/']);
   const queryPath = useMemo(() => path.join(...pathArr), [pathArr]);
 
-  const { data: collection } = useQuery(
+  const { data: collection, isFetching } = useQuery(
     ['fetchWebDAVFileList', queryPath],
     () => fetchWebDAVFile(queryPath),
     {
@@ -40,7 +41,7 @@ const WebDAVImport = ({ activeStep, goToNext }: ImportDataComponentProps) => {
   }, [collection]);
 
   return (
-    <>
+    <MyBox isLoading={isFetching} h={'100%'} py={[2, 4]}>
       <TableContainer
         px={[2, 6]}
         mt={[0, 3]}
@@ -80,7 +81,7 @@ const WebDAVImport = ({ activeStep, goToNext }: ImportDataComponentProps) => {
           </Tbody>
         </Table>
       </TableContainer>
-    </>
+    </MyBox>
   );
 };
 
