@@ -1,25 +1,28 @@
-import React, { useMemo } from 'react';
+import { useDatasetStore } from '@/web/core/dataset/store/dataset';
 import { Box, Button, Flex, IconButton } from '@chakra-ui/react';
 import MyIcon from '@fastgpt/web/components/common/Icon';
-import { useTranslation } from 'next-i18next';
-import { useRouter } from 'next/router';
-import { TabEnum } from '../../index';
 import { useMyStep } from '@fastgpt/web/hooks/useStep';
+import { useTranslation } from 'next-i18next';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
+import React, { useMemo } from 'react';
+import { TabEnum } from '../../index';
 import Provider from './Provider';
-import { useDatasetStore } from '@/web/core/dataset/store/dataset';
 
 const FileLocal = dynamic(() => import('./diffSource/FileLocal'));
 const FileLink = dynamic(() => import('./diffSource/FileLink'));
 const FileCustomText = dynamic(() => import('./diffSource/FileCustomText'));
 const TableLocal = dynamic(() => import('./diffSource/TableLocal'));
+const WebDAVImport = dynamic(() => import('./diffSource/WebDAVImport'));
 
 export enum ImportDataSourceEnum {
   fileLocal = 'fileLocal',
   fileLink = 'fileLink',
   fileCustom = 'fileCustom',
 
-  tableLocal = 'tableLocal'
+  tableLocal = 'tableLocal',
+
+  webdav = 'webdav'
 }
 
 const ImportDataset = () => {
@@ -75,6 +78,14 @@ const ImportDataset = () => {
       {
         title: t('core.dataset.import.Upload data')
       }
+    ],
+    [ImportDataSourceEnum.webdav]: [
+      {
+        title: t('core.dataset.import.Select file')
+      },
+      {
+        title: t('core.dataset.import.Upload data')
+      }
     ]
   };
   const steps = modeSteps[source];
@@ -89,6 +100,7 @@ const ImportDataset = () => {
     if (source === ImportDataSourceEnum.fileLink) return FileLink;
     if (source === ImportDataSourceEnum.fileCustom) return FileCustomText;
     if (source === ImportDataSourceEnum.tableLocal) return TableLocal;
+    if (source === ImportDataSourceEnum.webdav) return WebDAVImport;
   }, [source]);
 
   return ImportComponent ? (

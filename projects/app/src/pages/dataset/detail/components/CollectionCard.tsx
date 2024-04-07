@@ -440,11 +440,27 @@ const CollectionCard = () => {
                       ),
                       onClick: onOpenFileSourceSelector
                     },
+                    // {
+                    //   label: (
+                    //     <Flex>
+                    //       <MyIcon name={'core/dataset/tableCollection'} mr={2} w={'20px'} />
+                    //       {t('core.dataset.Table collection')}
+                    //     </Flex>
+                    //   ),
+                    //   onClick: () =>
+                    //     router.replace({
+                    //       query: {
+                    //         ...router.query,
+                    //         currentTab: TabEnum.import,
+                    //         source: ImportDataSourceEnum.tableLocal
+                    //       }
+                    //     })
+                    // },
                     {
                       label: (
                         <Flex>
-                          <MyIcon name={'core/dataset/tableCollection'} mr={2} w={'20px'} />
-                          {t('core.dataset.Table collection')}
+                          <MyIcon name={'file/uploadFile'} mr={2} w={'20px'} />
+                          云盘
                         </Flex>
                       ),
                       onClick: () =>
@@ -452,7 +468,7 @@ const CollectionCard = () => {
                           query: {
                             ...router.query,
                             currentTab: TabEnum.import,
-                            source: ImportDataSourceEnum.tableLocal
+                            source: ImportDataSourceEnum.webdav
                           }
                         })
                     }
