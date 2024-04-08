@@ -1,7 +1,5 @@
 import MyBox from '@/components/common/MyBox';
 import ParentPaths from '@/components/common/ParentPaths';
-import { GET } from '@/web/common/api/request';
-import { ImportDataComponentProps } from '@/web/core/dataset/type';
 import {
   Box,
   Button,
@@ -24,59 +22,13 @@ import MyIcon from '@fastgpt/web/components/common/Icon';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { t } from 'i18next';
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { useImportStore } from '../Provider';
+import { memo, useContext, useEffect, useMemo, useState } from 'react';
+import { WebDAVImportContext, fetchWebDAVFile } from '.';
+import { useConfirm } from '@fastgpt/web/hooks/useConfirm';
 
-const fileType = '.txt, .docx, .csv, .pdf, .md, .html';
 const maxSelectFileCount = 50;
 
-// API
-export const fetchWebDAVFile = (dir?: string) => GET<WebDAVFile[]>('plugins/webdav/list', { dir });
-
-// Store
-type useWebDAVImportStore = {
-  sources: WebDAVFile[];
-  setSources: React.Dispatch<React.SetStateAction<WebDAVFile[]>>;
-};
-const debugSources = [
-  {
-    filename: '/Nextcloud Manual.pdf',
-    basename: 'Nextcloud Manual.pdf',
-    lastmod: 'Fri, 05 Apr 2024 13:56:39 GMT',
-    size: 16149598,
-    type: 'file',
-    etag: 'a54b8af176f11b7a2fb83a9b9ce9a6e5',
-    mime: 'application/pdf'
-  },
-  {
-    filename: '/Reasons to use Nextcloud.pdf',
-    basename: 'Reasons to use Nextcloud.pdf',
-    lastmod: 'Fri, 05 Apr 2024 13:56:39 GMT',
-    size: 976625,
-    type: 'file',
-    etag: '718cb1caa7ad45929779865750269712',
-    mime: 'application/pdf'
-  }
-] satisfies WebDAVFile[];
-const WebDAVImportContext = createContext<useWebDAVImportStore>({
-  sources: [],
-  setSources: () => {}
-});
-
-// 参考 FileLocal.tsx
-const WebDAVImport = ({ activeStep, goToNext }: ImportDataComponentProps) => {
-  // TODO remove debug
-  const [sources, setSources] = useState<WebDAVFile[]>(debugSources);
-
-  return (
-    <WebDAVImportContext.Provider value={{ sources, setSources }}>
-      {activeStep === 0 && <SelectFile goToNext={goToNext} />}
-    </WebDAVImportContext.Provider>
-  );
-};
-export default React.memo(WebDAVImport);
-
-const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () => void }) {
+export const SelectFile = memo(function SelectFile({ goToNext }: { goToNext: () => void }) {
   const [pathArr, setPathArr] = useState<string[]>([]);
 
   const queryPath = useMemo(() => `/${pathArr.join('/')}`, [pathArr]);
@@ -122,6 +74,10 @@ const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () =
     }
   }
 
+  const { openConfirm: openCleanSelectedConfirm, ConfirmModal: CleanSelectConfirm } = useConfirm({
+    content: '清空已选中的文件'
+  });
+
   return (
     <MyBox isLoading={isFetching}>
       <Flex alignItems={'center'} h={'35px'}>
@@ -150,7 +106,7 @@ const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () =
                 overflow={'hidden'}
                 borderBottom={'none'}
                 py={4}
-                width={10}
+                width={'50px'}
               >
                 <Checkbox
                   size={'lg'}
@@ -206,7 +162,16 @@ const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () =
 
       <Flex alignItems={'center'} justifyContent={'flex-end'} mt={4}>
         {selected.length > 0 && (
-          <a style={{ cursor: 'pointer', marginRight: '16px' }} onClick={() => setSelected([])}>
+          <a
+            style={{ cursor: 'pointer', marginRight: '16px' }}
+            onClick={() => {
+              // FIXME
+              // openCleanSelectedConfirm(() => {
+              //   setSelected([]);
+              // });
+              setSelected([]);
+            }}
+          >
             清空
           </a>
         )}
@@ -219,6 +184,8 @@ const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () =
           </Button>
         </Box>
       </Flex>
+
+      <CleanSelectConfirm />
     </MyBox>
   );
 });

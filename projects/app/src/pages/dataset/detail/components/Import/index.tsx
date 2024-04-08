@@ -13,7 +13,7 @@ const FileLocal = dynamic(() => import('./diffSource/FileLocal'));
 const FileLink = dynamic(() => import('./diffSource/FileLink'));
 const FileCustomText = dynamic(() => import('./diffSource/FileCustomText'));
 const TableLocal = dynamic(() => import('./diffSource/TableLocal'));
-const WebDAVImport = dynamic(() => import('./diffSource/WebDAVImport'));
+const WebDAVImport = dynamic(() => import('./diffSource/webDAVImport/index'));
 
 export enum ImportDataSourceEnum {
   fileLocal = 'fileLocal',
@@ -91,7 +91,8 @@ const ImportDataset = () => {
   const steps = modeSteps[source];
 
   const { activeStep, goToNext, goToPrevious, MyStep } = useMyStep({
-    defaultStep: 0,
+    // TODO remove debug
+    defaultStep: 1,
     steps
   });
 
