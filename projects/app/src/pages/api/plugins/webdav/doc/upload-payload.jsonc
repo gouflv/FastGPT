@@ -1,0 +1,22 @@
+{
+  "files": {
+    "filename": "/AI知识库/通用知识/福州屏东中学简介.docx",
+    "basename": "福州屏东中学简介.docx",
+    "lastmod": "Fri, 29 Mar 2024 04:01:03 GMT",
+    "size": 15438,
+    "type": "file",
+    "etag": "259f39e32ae705abfd042f3612d93a3c",
+    "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  },
+  "data": {
+    "trainingType": "chunk",
+    "datasetId": "66100e241f9b6a7234c9b5ca",
+    "chunkSize": 700,
+    "chunkSplitter": "",
+    "qaPrompt": "<Context></Context> 标记中是一段文本，学习和分析它，并整理学习成果：\n- 提出问题并给出每个问题的答案。\n- 答案需详细完整，尽可能保留原文描述。\n- 答案可以包含普通文字、链接、代码、表格、公示、媒体链接等 Markdown 元素。\n- 最多提出 30 个问题。\n"
+    // "name": "template.csv",
+    // "rawTextLength": 287,
+    // "hashRawText": "cbf3c6db6964498d65e45ee3ea134b4eea637c3298b6a1e72bd8f9e1089e9a86",
+    // "collectionMetadata": { "relatedImgId": "qcG6chf0FlSZdJosn3HeWsekmXShvUwV" }
+  }
+}

@@ -1,6 +1,9 @@
 import { connectToDatabase } from '@/service/mongo';
 import { BucketNameEnum } from '@fastgpt/global/common/file/constants';
-import { DatasetCollectionTypeEnum } from '@fastgpt/global/core/dataset/constants';
+import {
+  DatasetCollectionTypeEnum,
+  TrainingModeEnum
+} from '@fastgpt/global/core/dataset/constants';
 import { UsageSourceEnum } from '@fastgpt/global/support/wallet/usage/constants';
 import { WebDAVFile, importWebDAVFile } from '@fastgpt/plugins/webdav/service';
 import {
@@ -10,17 +13,25 @@ import {
 } from '@fastgpt/service/common/file/gridfs/controller';
 import { jsonRes } from '@fastgpt/service/common/response';
 import { getLLMModel, getVectorModel } from '@fastgpt/service/core/ai/model';
-import { createOneCollection } from '@fastgpt/service/core/dataset/collection/controller';
+import {
+  createOneCollection,
+  delCollectionAndRelatedSources
+} from '@fastgpt/service/core/dataset/collection/controller';
 import { authDataset } from '@fastgpt/service/support/permission/auth/dataset';
 import { createTrainingUsage } from '@fastgpt/service/support/wallet/usage/controller';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { readMdFile, readPdfFile, readRawText, readWordFile } from './read';
+import { splitText2Chunks } from '@fastgpt/global/common/string/textSplitter';
+import { chunksUpload } from '@/web/core/dataset/utils';
+import { PushDatasetDataProps } from '@fastgpt/global/core/dataset/api';
+import { pushDataListToTrainingQueue } from '@fastgpt/service/core/dataset/training/controller';
+import { findCollectionAndChild } from '@fastgpt/service/core/dataset/collection/utils';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   let fileId = '';
-  try {
-    await connectToDatabase();
+  let collectionId = '';
 
+  try {
     const { datasetId } = req.query as { datasetId: string };
 
     const { teamId, tmbId, dataset } = await authDataset({
@@ -31,8 +42,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       datasetId
     });
 
-    const { file, data } = req.body as { file: WebDAVFile; data: any };
-    console.log(file, data);
+    const { file, data } = req.body as {
+      file: WebDAVFile;
+      data: {
+        trainingType: TrainingModeEnum.chunk;
+        datasetId: string;
+        chunkSize: number;
+        chunkSplitter: string;
+        qaPrompt: string;
+      };
+    };
+    console.log('webdav upload params', file, data);
+
+    await connectToDatabase();
 
     // import webdav files
     fileId = await importWebDAVFile(teamId, tmbId, file);
@@ -40,8 +62,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     // create collection
     const collectionData = data;
     const collectionMetadata = {};
-    const { _id: collectionId } = await createOneCollection({
+    const collectionCreated = await createOneCollection({
       ...collectionData,
+      datasetId,
       name: file.basename,
       metadata: collectionMetadata,
       teamId,
@@ -50,6 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       fileId
     });
 
+    collectionId = collectionCreated._id;
     if (!collectionId) {
       return;
     }
@@ -65,13 +89,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     });
 
     // read file raw text
-    const rawText = await readFileRawText(fileId);
-    console.log(rawText);
+    const fr = await readFileRawText(fileId);
+    // console.log('readFileRawText', fr);
 
     // split text to chunks
-    // push data
+    // Reference dataset/detail/components/Import/Provider.tsx
+    const chunkRes = splitText2Chunks({
+      text: fr.rawText,
+      chunkLen: data.chunkSize,
+      overlapRatio: 0.2,
+      customReg: []
+    });
+    const chunkChars = chunkRes.chars;
+    const chunks = chunkRes.chunks.map((chunk, i) => ({
+      chunkIndex: i,
+      q: chunk,
+      a: ''
+    }));
 
-    jsonRes(res, { data: 'importId' });
+    // push data
+    // Reference
+    // - dataset/detail/components/Import/Provider.tsx
+    // - dataset/detail/components/Import/commonProgress/Upload.tsx
+    // - dataset/utils.ts
+    // - core/api/dataset/data/pushData.ts
+
+    // split chunk by rate
+    const rate = 50;
+    for (let i = 0; i < chunks.length; i += rate) {
+      const uploadChunks = chunks.slice(i, i + rate);
+      debugger;
+      await pushDataListToTrainingQueue({
+        teamId,
+        tmbId,
+        collectionId,
+        billId,
+        trainingMode: data.trainingType,
+        data: uploadChunks,
+        prompt: data.qaPrompt
+      });
+    }
+
+    jsonRes(res, { data: collectionId });
   } catch (error) {
     console.log(error);
 
@@ -93,14 +152,10 @@ async function readFileRawText(fileId: string) {
   if (!file) {
     return Promise.reject('File not found');
   }
-  console.log('fileId', fileId, file);
-
   const stream = await getDownloadStream({ bucketName: BucketNameEnum.dataset, fileId });
   const blob = new Blob(await stream.toArray(), { type: file.contentType });
-
   // const text = await blob.text();
   // console.log('text', text);
-
   return readFileRawContent(file.filename, blob);
 }
 
