@@ -1,14 +1,89 @@
-import { Flex, Progress, Table, TableContainer, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
+import {
+  Button,
+  Flex,
+  Progress,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr
+} from '@chakra-ui/react';
 import { getFileIcon } from '@fastgpt/global/common/file/icon';
 import { formatFileSize } from '@fastgpt/global/common/file/tools';
 import MyIcon from '@fastgpt/web/components/common/Icon';
-import { useContext } from 'react';
-import { WebDAVImportContext } from '.';
+import { useContext, useEffect, useState } from 'react';
+import { WebDAVImportContext, uploadWebDAVFiles } from '.';
 import { useDatasetStore } from '@/web/core/dataset/store/dataset';
+import { FormType, useImportStore } from '../../Provider';
+import { useRequest } from '@fastgpt/web/hooks/useRequest';
 
+// Reference: commonProgress/Upload.tsx
 export const Upload = () => {
-  const { sources } = useContext(WebDAVImportContext);
   const { datasetDetail } = useDatasetStore();
+  const { parentId, sources, processParamsForm, chunkSize, totalChunks, uploadRate } =
+    useImportStore();
+  const { handleSubmit } = processParamsForm;
+
+  const { sources: fileSources } = useContext(WebDAVImportContext);
+
+  const [uploadState, setUploadState] = useState<
+    {
+      index: number;
+      state: 'pending' | 'uploading' | 'done' | 'error';
+    }[]
+  >([]);
+
+  useEffect(() => {
+    setUploadState(fileSources.map((_, index) => ({ index, state: 'pending' })));
+  }, []);
+
+  const { mutate: startUpload, isLoading } = useRequest({
+    mutationFn: async function ({ mode, customSplitChar, qaPrompt, webSelector }: FormType) {
+      if (fileSources.length === 0) return;
+
+      const commonFileData = {
+        parentId,
+        trainingType: mode,
+        datasetId: datasetDetail._id,
+        chunkSize,
+        chunkSplitter: customSplitChar,
+        qaPrompt
+        // TODO: computed in the backend
+        // name: item.sourceName,
+        // rawTextLength: item.rawText.length,
+        // hashRawText: hashStr(item.rawText)
+      };
+
+      for await (const [index, item] of fileSources.entries()) {
+        setUploadState((prev) => {
+          prev[index].state = 'uploading';
+          return [...prev];
+        });
+
+        try {
+          await uploadWebDAVFiles(item, {
+            ...commonFileData,
+            collectionMetadata: {
+              // TODO: computed in the backend
+              relatedImgId: ''
+            }
+          });
+
+          setUploadState((prev) => {
+            prev[index].state = 'done';
+            return [...prev];
+          });
+        } catch (error) {
+          setUploadState((prev) => {
+            prev[index].state = 'error';
+            return [...prev];
+          });
+        }
+      }
+    }
+  });
 
   return (
     <div>
@@ -37,7 +112,7 @@ export const Upload = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {sources?.map((item, index) => (
+            {fileSources?.map((item, index) => (
               <Tr key={item.filename} _hover={{ bg: 'myWhite.600' }} cursor={'pointer'}>
                 <Td>{index + 1}</Td>
                 <Td>
@@ -68,6 +143,12 @@ export const Upload = () => {
           </Tbody>
         </Table>
       </TableContainer>
+
+      <Flex justifyContent={'flex-end'} mt={4}>
+        <Button isLoading={isLoading} onClick={handleSubmit((data) => startUpload(data))}>
+          开始上传
+        </Button>
+      </Flex>
     </div>
   );
 };

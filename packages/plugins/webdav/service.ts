@@ -1,23 +1,36 @@
 import { type FileStat } from 'webdav';
-import { client } from './client';
+import { webDAVClient, webDAVFileClient } from './client';
 import { orderBy } from 'lodash';
+import { getGridBucket } from '@fastgpt/service/common/file/gridfs/controller';
 
 export type WebDAVFile = FileStat;
 
 export async function fetchWebDAVFiles(dir = '/') {
-  const res = (await client.getDirectoryContents(dir, {
-    // TODO enable
+  const res = (await webDAVClient.getDirectoryContents(dir, {
     // Reference FileLocal.tsx
-    // glob: '*.{txt,docx,csv,pdf,md,html}'
+    glob: '*.{txt,docx,pdf,md}'
   })) as WebDAVFile[];
 
-  return sort(res);
+  return orderBy(res, ['type'], ['asc']);
 }
 
-async function createWebDAVFileReadStream(file: WebDAVFile) {
-  return client.createReadStream(file.filename);
-}
+export async function importWebDAVFile(teamId: string, tmbId: string, file: WebDAVFile) {
+  const bucket = getGridBucket('dataset');
 
-function sort(data: WebDAVFile[]) {
-  return orderBy(data, ['type'], ['asc']);
+  const readStream = webDAVFileClient.createReadStream(file.filename);
+
+  const importStream = bucket.openUploadStream(file.filename, {
+    metadata: {
+      teamId,
+      tmbId
+    },
+    contentType: file.mime
+  });
+
+  await new Promise((resolve, reject) => {
+    readStream.pipe(importStream).on('finish', resolve).on('error', reject);
+  });
+
+  const fileId = String(importStream.id);
+  return fileId;
 }

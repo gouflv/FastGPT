@@ -79,17 +79,18 @@ export const SelectFile = memo(function SelectFile({ goToNext }: { goToNext: () 
   });
 
   return (
-    <MyBox isLoading={isFetching}>
+    <MyBox isLoading={isFetching} height={'100%'} display={'flex'} flexDirection={'column'}>
       <Flex alignItems={'center'} h={'35px'}>
         <Flex flex={1} px={2}>
           <ParentPaths
             paths={pathArr.map((path, i) => ({
-              parentId: String(i),
+              parentId: String(i + 1),
               parentName: path
             }))}
             onClick={(id) => {
               const index = Number(id);
-              // slice pathArr from 0 to index, inclusive
+              console.log('index', index);
+              // remove all after index
               setPathArr(pathArr.slice(0, index));
             }}
           />
@@ -97,7 +98,7 @@ export const SelectFile = memo(function SelectFile({ goToNext }: { goToNext: () 
         <Box>{/* TODO search */}</Box>
       </Flex>
 
-      <TableContainer mt={[0, 3]} flex={'1 0 0'} overflowY={'auto'}>
+      <TableContainer mt={[0, 3]} overflowY={'auto'}>
         <Table fontSize={'sm'} draggable={false}>
           <Thead draggable={false}>
             <Tr bg={'myGray.100'} mb={2}>
@@ -144,7 +145,7 @@ export const SelectFile = memo(function SelectFile({ goToNext }: { goToNext: () 
                     disabled={item.type === 'directory'}
                   />
                 </Td>
-                <Td>
+                <Td overflow={'hidden'}>
                   {item.type === 'directory' ? (
                     <MyIcon name={'file/fill/folder'} w={'16px'} mr={2} />
                   ) : (
