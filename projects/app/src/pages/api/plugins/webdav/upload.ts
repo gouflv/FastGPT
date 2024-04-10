@@ -1,5 +1,6 @@
 import { connectToDatabase } from '@/service/mongo';
 import { BucketNameEnum } from '@fastgpt/global/common/file/constants';
+import { splitText2Chunks } from '@fastgpt/global/common/string/textSplitter';
 import {
   DatasetCollectionTypeEnum,
   TrainingModeEnum
@@ -13,26 +14,31 @@ import {
 } from '@fastgpt/service/common/file/gridfs/controller';
 import { jsonRes } from '@fastgpt/service/common/response';
 import { getLLMModel, getVectorModel } from '@fastgpt/service/core/ai/model';
-import {
-  createOneCollection,
-  delCollectionAndRelatedSources
-} from '@fastgpt/service/core/dataset/collection/controller';
+import { createOneCollection } from '@fastgpt/service/core/dataset/collection/controller';
+import { pushDataListToTrainingQueue } from '@fastgpt/service/core/dataset/training/controller';
 import { authDataset } from '@fastgpt/service/support/permission/auth/dataset';
 import { createTrainingUsage } from '@fastgpt/service/support/wallet/usage/controller';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { readMdFile, readPdfFile, readRawText, readWordFile } from './read';
-import { splitText2Chunks } from '@fastgpt/global/common/string/textSplitter';
-import { chunksUpload } from '@/web/core/dataset/utils';
-import { PushDatasetDataProps } from '@fastgpt/global/core/dataset/api';
-import { pushDataListToTrainingQueue } from '@fastgpt/service/core/dataset/training/controller';
-import { findCollectionAndChild } from '@fastgpt/service/core/dataset/collection/utils';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   let fileId = '';
   let collectionId = '';
 
   try {
-    const { datasetId } = req.query as { datasetId: string };
+    const { file, data } = req.body as {
+      file: WebDAVFile;
+      data: {
+        datasetId: string;
+        trainingType: TrainingModeEnum.chunk;
+        chunkSize: number;
+        chunkSplitter: string;
+        qaPrompt: string;
+      };
+    };
+    console.log('webdav upload params', file, data);
+
+    const { datasetId } = data;
 
     const { teamId, tmbId, dataset } = await authDataset({
       req,
@@ -41,18 +47,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       per: 'w',
       datasetId
     });
-
-    const { file, data } = req.body as {
-      file: WebDAVFile;
-      data: {
-        trainingType: TrainingModeEnum.chunk;
-        datasetId: string;
-        chunkSize: number;
-        chunkSplitter: string;
-        qaPrompt: string;
-      };
-    };
-    console.log('webdav upload params', file, data);
 
     await connectToDatabase();
 

@@ -15,47 +15,26 @@ type WebDAVImportContext = {
   sources: WebDAVFile[];
   setSources: React.Dispatch<React.SetStateAction<WebDAVFile[]>>;
 };
-const debugSources: WebDAVFile[] = true
-  ? [
-      {
-        filename: '/Readme.md',
-        basename: 'Readme.md',
-        lastmod: 'Fri, 05 Apr 2024 13:56:39 GMT',
-        size: 206,
-        type: 'file',
-        etag: 'effffaee4f9a9e7b804ae4079a5353a6',
-        mime: 'text/markdown'
-      },
-      {
-        filename: '/Nextcloud Manual.pdf',
-        basename: 'Nextcloud Manual.pdf',
-        lastmod: 'Fri, 05 Apr 2024 13:56:39 GMT',
-        size: 16149598,
-        type: 'file',
-        etag: 'a54b8af176f11b7a2fb83a9b9ce9a6e5',
-        mime: 'application/pdf'
-      }
-    ]
-  : [
-      {
-        filename: '/AI知识库/通用知识/福州屏东中学简介.docx',
-        basename: '福州屏东中学简介.docx',
-        lastmod: 'Fri, 29 Mar 2024 04:01:03 GMT',
-        size: 15438,
-        type: 'file',
-        etag: '259f39e32ae705abfd042f3612d93a3c',
-        mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-      },
-      {
-        filename: '/AI知识库/通用知识/福州屏东中学学校领导.docx',
-        basename: '福州屏东中学学校领导.docx',
-        lastmod: 'Fri, 29 Mar 2024 04:04:47 GMT',
-        size: 17485,
-        type: 'file',
-        etag: '70409be1a56e06e1c4e3883e4a456ef9',
-        mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-      }
-    ];
+const debugSources: WebDAVFile[] = [
+  {
+    filename: '/AI知识库/通用知识/福州屏东中学简介.docx',
+    basename: '福州屏东中学简介.docx',
+    lastmod: 'Fri, 29 Mar 2024 04:01:03 GMT',
+    size: 15438,
+    type: 'file',
+    etag: '259f39e32ae705abfd042f3612d93a3c',
+    mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  },
+  {
+    filename: '/AI知识库/通用知识/福州屏东中学学校领导.docx',
+    basename: '福州屏东中学学校领导.docx',
+    lastmod: 'Fri, 29 Mar 2024 04:04:47 GMT',
+    size: 17485,
+    type: 'file',
+    etag: '70409be1a56e06e1c4e3883e4a456ef9',
+    mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  }
+];
 
 export const WebDAVImportContext = createContext<WebDAVImportContext>({
   sources: [],
@@ -64,8 +43,7 @@ export const WebDAVImportContext = createContext<WebDAVImportContext>({
 
 // 参考 FileLocal.tsx
 const WebDAVImport = ({ activeStep, goToNext }: ImportDataComponentProps) => {
-  // TODO remove debug
-  const [sources, setSources] = useState<WebDAVFile[]>(debugSources);
+  const [sources, setSources] = useState<WebDAVFile[]>([]);
 
   return (
     <WebDAVImportContext.Provider value={{ sources, setSources }}>

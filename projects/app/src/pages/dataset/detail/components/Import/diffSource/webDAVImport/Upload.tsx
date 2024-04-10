@@ -18,6 +18,10 @@ import { WebDAVImportContext, uploadWebDAVFiles } from '.';
 import { useDatasetStore } from '@/web/core/dataset/store/dataset';
 import { FormType, useImportStore } from '../../Provider';
 import { useRequest } from '@fastgpt/web/hooks/useRequest';
+import { useToast } from '@fastgpt/web/hooks/useToast';
+import { useTranslation } from 'next-i18next';
+import { useRouter } from 'next/router';
+import { TabEnum } from '@/pages/dataset/detail';
 
 // Reference: commonProgress/Upload.tsx
 export const Upload = () => {
@@ -25,12 +29,14 @@ export const Upload = () => {
   const { parentId, sources, processParamsForm, chunkSize, totalChunks, uploadRate } =
     useImportStore();
   const { handleSubmit } = processParamsForm;
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const router = useRouter();
 
   const { sources: fileSources } = useContext(WebDAVImportContext);
 
   const [uploadState, setUploadState] = useState<
     {
-      index: number;
       state: 'pending' | 'uploading' | 'done' | 'error';
     }[]
   >([]);
@@ -82,6 +88,18 @@ export const Upload = () => {
           });
         }
       }
+    },
+    onSuccess: () => {
+      toast({
+        title: t('core.dataset.import.Upload success'),
+        status: 'success'
+      });
+      router.replace({
+        query: {
+          ...router.query,
+          currentTab: TabEnum.collectionCard
+        }
+      });
     }
   });
 
@@ -107,7 +125,7 @@ export const Upload = () => {
                 大小
               </Th>
               <Th borderBottom={'none'} py={4}>
-                导入进度
+                导入状态
               </Th>
             </Tr>
           </Thead>
@@ -121,22 +139,14 @@ export const Upload = () => {
                 </Td>
                 <Td>{formatFileSize(item.size)}</Td>
                 <Td>
-                  <Flex alignItems={'center'} fontSize={'xs'}>
-                    <Progress
-                      value={10}
-                      h={'6px'}
-                      w={'100%'}
-                      maxW={'210px'}
-                      size="sm"
-                      borderRadius={'20px'}
-                      colorScheme={'blue'}
-                      bg="myGray.200"
-                      hasStripe
-                      isAnimated
-                      mr={2}
-                    />
-                    {`${10}%`}
-                  </Flex>
+                  {
+                    {
+                      pending: '准备',
+                      uploading: '导入中',
+                      done: '完成',
+                      error: '失败'
+                    }[uploadState[index]?.state]
+                  }
                 </Td>
               </Tr>
             ))}
