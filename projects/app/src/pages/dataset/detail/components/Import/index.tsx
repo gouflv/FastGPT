@@ -91,8 +91,7 @@ const ImportDataset = () => {
   const steps = modeSteps[source];
 
   const { activeStep, goToNext, goToPrevious, MyStep } = useMyStep({
-    // TODO remove debug
-    defaultStep: 1,
+    defaultStep: 0,
     steps
   });
 
