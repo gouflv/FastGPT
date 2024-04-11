@@ -2,8 +2,8 @@ import { GET, POST } from '@/web/common/api/request';
 import { ImportDataComponentProps } from '@/web/core/dataset/type';
 import { WebDAVFile } from '@fastgpt/plugins/webdav/service';
 import React, { createContext, useState } from 'react';
-import { SelectFile } from './SelectFile';
-import { Upload } from './Upload';
+import SelectFile from './SelectFile';
+import Upload from './Upload';
 
 // API
 export const fetchWebDAVFile = (dir?: string) => GET<WebDAVFile[]>('plugins/webdav/list', { dir });

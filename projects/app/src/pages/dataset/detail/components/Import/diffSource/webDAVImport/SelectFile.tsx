@@ -28,7 +28,7 @@ import { useConfirm } from '@fastgpt/web/hooks/useConfirm';
 
 const maxSelectFileCount = 50;
 
-export const SelectFile = memo(function SelectFile({ goToNext }: { goToNext: () => void }) {
+export default memo(function SelectFile({ goToNext }: { goToNext: () => void }) {
   const [pathArr, setPathArr] = useState<string[]>([]);
 
   const queryPath = useMemo(() => `/${pathArr.join('/')}`, [pathArr]);

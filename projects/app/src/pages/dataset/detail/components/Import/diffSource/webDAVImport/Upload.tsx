@@ -24,7 +24,7 @@ import { useRouter } from 'next/router';
 import { TabEnum } from '@/pages/dataset/detail';
 
 // Reference: commonProgress/Upload.tsx
-export const Upload = () => {
+export default () => {
   const { datasetDetail } = useDatasetStore();
   const { parentId, sources, processParamsForm, chunkSize, totalChunks, uploadRate } =
     useImportStore();
