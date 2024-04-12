@@ -8,7 +8,7 @@ export type WebDAVFile = FileStat;
 export async function fetchWebDAVFiles(dir = '/') {
   const res = (await webDAVClient.getDirectoryContents(dir, {
     // Reference FileLocal.tsx
-    glob: '*.{txt,docx,pdf,md}'
+    // glob: '*.{txt,docx,pdf,md}'
   })) as WebDAVFile[];
 
   return orderBy(res, ['type'], ['asc']);
