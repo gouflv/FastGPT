@@ -460,7 +460,7 @@ const CollectionCard = () => {
                       label: (
                         <Flex>
                           <MyIcon name={'file/uploadFile'} mr={2} w={'20px'} />
-                          云盘
+                          校本资源库
                         </Flex>
                       ),
                       onClick: () =>
