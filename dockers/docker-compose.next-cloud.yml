@@ -1,0 +1,54 @@
+version: "3.2"
+
+volumes:
+  nextcloud:
+  mysql:
+
+networks:
+  fastgpt:
+
+services:
+  redis-server:
+    image: redis
+    container_name: redis-server
+    hostname: redis-server
+    restart: always
+    networks:
+      - fastgpt
+  mysql-server:
+    image: mariadb:10.6
+    container_name: mysql-server
+    hostname: mysql-server
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW --innodb-file-per-table=1 --skip-innodb-read-only-compressed
+    volumes:
+      - mysql:/var/lib/mysql
+    networks:
+      - fastgpt
+    environment:
+      - MYSQL_ROOT_PASSWORD=3d2cdaf1997c
+      - MYSQL_PASSWORD=39d4ed2cd97c
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+
+  nextcloud-server:
+    image: nextcloud
+    container_name: nextcloud-server
+    hostname: nextcloud-server
+    restart: always
+    networks:
+      - fastgpt
+    ports:
+      - 8001:80
+    depends_on:
+      - mysql-server
+      - redis-server
+    volumes:
+      - nextcloud:/var/www/html
+    environment:
+      - MYSQL_PASSWORD=39d4ed2cd97c
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_HOST=mysql-server
+      - REDIS_HOST=redis-server
+      - REDIS_PORT=6379
