@@ -39,10 +39,6 @@ const DataProcess = dynamic(() => import('../commonProgress/DataProcess'), {
 });
 const Upload = dynamic(() => import('../commonProgress/Upload'));
 
-type FileItemType = ImportSourceItemType;
-const fileType = '.txt, .docx, .csv, .xlsx, .pdf, .md, .html, .pptx';
-const maxSelectFileCount = 50;
-
 const FileWebDAV = ({ activeStep, goToNext }: ImportDataComponentProps) => {
   return (
     <>
@@ -54,6 +50,16 @@ const FileWebDAV = ({ activeStep, goToNext }: ImportDataComponentProps) => {
 };
 
 export default React.memo(FileWebDAV);
+
+type FileItemType = ImportSourceItemType;
+const fileType = '.txt, .docx, .csv, .xlsx, .pdf, .md, .html, .pptx';
+const maxSelectFileCount = 50;
+
+function checkFileTypeValidate(item: FileWebDAV) {
+  if (item.type === 'directory') return false;
+  const ext = item.basename.split('.').pop();
+  return ext ? fileType.includes(ext) : false;
+}
 
 // API
 export const fetchWebDAVFile = (dir?: string) => GET<FileWebDAV[]>('plugins/webdav/list', { dir });
@@ -79,7 +85,7 @@ const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () =
     setSources(successFiles);
   }, [successFiles]);
 
-  const [pathArr, setPathArr] = useState<string[]>([]);
+  const [pathArr, setPathArr] = useState<string[]>(['AI知识库', '通识知识库']);
   const queryPath = useMemo(() => `/${pathArr.join('/')}`, [pathArr]);
 
   const { data: collection, isFetching } = useQuery(
@@ -94,8 +100,32 @@ const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () =
       }
     }
   );
+  const validateCollection = useMemo(() => collection?.filter(checkFileTypeValidate), [collection]);
 
+  // Select
   const [selected, setSelected] = useState<FileWebDAV[]>([]);
+
+  const isAllChecked = useMemo(
+    () => !!validateCollection?.length && selected.length === validateCollection.length,
+    [validateCollection, selected]
+  );
+
+  const isAllIndeterminate = useMemo(
+    () =>
+      !!validateCollection?.length &&
+      selected.length > 0 &&
+      selected.length < validateCollection.length,
+    [validateCollection, selected]
+  );
+
+  function onSelectAllChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { checked } = e.target;
+    if (checked) {
+      setSelected(validateCollection ?? []);
+    } else {
+      setSelected([]);
+    }
+  }
 
   function checkIsSelected(item: FileWebDAV) {
     // use item.etag as key
@@ -104,9 +134,9 @@ const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () =
 
   function onSelectChange(item: FileWebDAV) {
     if (checkIsSelected(item)) {
-      setSelected(selected.filter((s) => s.etag !== item.etag));
+      setSelected((state) => state.filter((s) => s.etag !== item.etag));
     } else {
-      setSelected([...selected, item]);
+      setSelected((state) => [...state, item]);
     }
   }
 
@@ -126,8 +156,12 @@ const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () =
 
   useEffect(() => {
     if (uploadProgress.current) {
+      const isFinish = successFiles.length === uploadFiles.length;
       toast.update(uploadProgress.current, {
-        title: `正在导入...(${successFiles.length}/${uploadFiles.length})`
+        status: isFinish ? 'success' : 'loading',
+        title: isFinish
+          ? '导入成功'
+          : `正在导入...(${successFiles.length || 1}/${uploadFiles.length})`
       });
     }
   }, [successFiles, toast, uploadFiles]);
@@ -171,9 +205,10 @@ const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () =
           })
         );
 
-        toast.close(uploadProgress.current);
-
-        setTimeout(goToNext, 200);
+        setTimeout(() => {
+          if (uploadProgress.current) toast.close(uploadProgress.current);
+          goToNext();
+        }, 1000);
       } catch (error) {
         console.log(error);
       }
@@ -194,10 +229,8 @@ const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () =
               parentName: path
             }))}
             onClick={(id) => {
-              const index = Number(id);
-              console.log('index', index);
-              // remove all after index
-              setPathArr(pathArr.slice(0, index));
+              // remove path after index
+              setPathArr(pathArr.slice(0, Number(id)));
             }}
           />
         </Flex>
@@ -217,9 +250,9 @@ const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () =
               >
                 <Checkbox
                   size={'lg'}
-                  onChange={(e) => {
-                    console.log('e', e);
-                  }}
+                  isChecked={isAllChecked}
+                  isIndeterminate={isAllIndeterminate}
+                  onChange={onSelectAllChange}
                 />
               </Th>
               <Th borderBottom={'none'} py={4}>
@@ -248,7 +281,7 @@ const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () =
                     onChange={(e) => {
                       onSelectChange(item);
                     }}
-                    disabled={item.type === 'directory'}
+                    disabled={item.type === 'directory' || !checkFileTypeValidate(item)}
                   />
                 </Td>
                 <Td overflow={'hidden'}>
