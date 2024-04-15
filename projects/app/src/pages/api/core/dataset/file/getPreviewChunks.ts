@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
 
     const { chunks } = await (async () => {
-      if (type === ImportDataSourceEnum.fileLocal) {
+      if (type === ImportDataSourceEnum.fileLocal || type === ImportDataSourceEnum.webDAV) {
         const { file, teamId } = await authFile({ req, authToken: true, fileId: sourceId });
         const fileId = String(file._id);
 

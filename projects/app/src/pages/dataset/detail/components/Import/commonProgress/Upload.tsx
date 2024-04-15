@@ -68,7 +68,11 @@ const Upload = () => {
 
           name: item.sourceName
         };
-        if (importSource === ImportDataSourceEnum.fileLocal && item.dbFileId) {
+        if (
+          (importSource === ImportDataSourceEnum.fileLocal ||
+            importSource === ImportDataSourceEnum.webDAV) &&
+          item.dbFileId
+        ) {
           await postCreateDatasetFileCollection({
             ...commonParams,
             fileId: item.dbFileId

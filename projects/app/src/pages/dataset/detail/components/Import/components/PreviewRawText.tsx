@@ -28,6 +28,12 @@ const PreviewRawText = ({
           csvFormat: true
         });
       }
+      if (importSource === ImportDataSourceEnum.webDAV && previewSource.dbFileId) {
+        return getPreviewFileContent({
+          fileId: previewSource.dbFileId,
+          csvFormat: true
+        });
+      }
       if (importSource === ImportDataSourceEnum.csvTable && previewSource.dbFileId) {
         return getPreviewFileContent({
           fileId: previewSource.dbFileId,

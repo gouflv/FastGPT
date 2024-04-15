@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic';
 import { useDatasetStore } from '@/web/core/dataset/store/dataset';
 import { ImportDataSourceEnum } from '@fastgpt/global/core/dataset/constants';
 import Provider from './Provider';
+import FileWebDav from './diffSource/FileWebDav';
 
 const FileLocal = dynamic(() => import('./diffSource/FileLocal'));
 const FileLink = dynamic(() => import('./diffSource/FileLink'));
@@ -68,6 +69,17 @@ const ImportDataset = () => {
       {
         title: t('core.dataset.import.Upload data')
       }
+    ],
+    [ImportDataSourceEnum.webDAV]: [
+      {
+        title: t('core.dataset.import.Select file')
+      },
+      {
+        title: t('core.dataset.import.Data Preprocessing')
+      },
+      {
+        title: t('core.dataset.import.Upload data')
+      }
     ]
   };
   const steps = modeSteps[source];
@@ -82,6 +94,7 @@ const ImportDataset = () => {
     if (source === ImportDataSourceEnum.fileLink) return FileLink;
     if (source === ImportDataSourceEnum.fileCustom) return FileCustomText;
     if (source === ImportDataSourceEnum.csvTable) return TableLocal;
+    if (source === ImportDataSourceEnum.webDAV) return FileWebDav;
   }, [source]);
 
   return ImportComponent ? (

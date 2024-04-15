@@ -24,6 +24,7 @@ const PreviewChunks = ({
     ['previewSource'],
     () => {
       if (
+        importSource === ImportDataSourceEnum.webDAV ||
         importSource === ImportDataSourceEnum.fileLocal ||
         importSource === ImportDataSourceEnum.csvTable ||
         importSource === ImportDataSourceEnum.fileLink
