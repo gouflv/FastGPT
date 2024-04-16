@@ -1,6 +1,6 @@
 import { connectToDatabase } from '@/service/mongo';
 import { BucketNameEnum } from '@fastgpt/global/common/file/constants';
-import { WebDAVFile, importWebDAVFile } from '@fastgpt/plugins/webdav/service';
+import { FileWebDAV, importWebDAVFile } from '@fastgpt/plugins/webdav/service';
 import { jsonRes } from '@fastgpt/service/common/response';
 import { authCert } from '@fastgpt/service/support/permission/auth/common';
 import { NextApiRequest, NextApiResponse } from 'next';
@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     await connectToDatabase();
 
     const { file } = req.body as {
-      file: WebDAVFile;
+      file: FileWebDAV;
     };
 
     console.log('webdav upload start');
