@@ -47,6 +47,9 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['mongoose', 'pg'],
     outputFileTracingRoot: path.join(__dirname, '../../')
+  },
+  eslint: {
+    ignoreDuringBuilds: true
   }
 };
 

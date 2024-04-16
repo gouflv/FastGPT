@@ -45,4 +45,6 @@ files/helm/fastgpt/charts/*.tgz
 
 tmp/
 
-dockers/mongo/data/
+dockers/mongo
+dockers/mysql
+dockers/oneapi
