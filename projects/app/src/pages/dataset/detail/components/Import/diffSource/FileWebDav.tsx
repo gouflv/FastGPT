@@ -57,7 +57,7 @@ const maxSelectFileCount = 50;
 
 function checkFileTypeValidate(item: FileWebDAV) {
   if (item.type === 'directory') return false;
-  const ext = item.basename.split('.').pop();
+  const ext = item.basename.split('.')?.pop()?.toLowerCase();
   return ext ? fileType.includes(ext) : false;
 }
 
@@ -85,7 +85,7 @@ const SelectFile = React.memo(function SelectFile({ goToNext }: { goToNext: () =
     setSources(successFiles);
   }, [successFiles]);
 
-  const [pathArr, setPathArr] = useState<string[]>(['AI知识库', '通识知识库']);
+  const [pathArr, setPathArr] = useState<string[]>([]);
   const queryPath = useMemo(() => `/${pathArr.join('/')}`, [pathArr]);
 
   const { data: collection, isFetching } = useQuery(
