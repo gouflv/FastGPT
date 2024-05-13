@@ -33,6 +33,7 @@ type State = {
   lastChatId: string;
   setLastChatId: (id: string) => void;
   delOneHistoryItem: (e: DeleteChatItemProps) => Promise<any>;
+  userLocalChatIds: string[];
 };
 
 export const useChatStore = create<State>()(
@@ -51,29 +52,34 @@ export const useChatStore = create<State>()(
             state.lastChatId = id;
           });
         },
+        userLocalChatIds: [],
         histories: [],
         async loadHistories(e) {
           const data = await getChatHistories(e);
           set((state) => {
-            state.histories = data;
+            // show chat history only matched local chatIds
+            state.histories = data.filter((item) => state.userLocalChatIds.includes(item.chatId));
           });
           return null;
         },
         async delOneHistory(props) {
           set((state) => {
             state.histories = state.histories.filter((item) => item.chatId !== props.chatId);
+            state.userLocalChatIds = state.userLocalChatIds.filter((item) => item !== props.chatId);
           });
           await delChatHistoryById(props);
         },
         async clearHistories(data) {
           set((state) => {
             state.histories = [];
+            state.userLocalChatIds = [];
           });
           await clearChatHistoryByAppId(data);
         },
         pushHistory(history) {
           set((state) => {
             state.histories = [history, ...state.histories];
+            state.userLocalChatIds = [history.chatId, ...state.userLocalChatIds];
           });
         },
         async updateHistory(props) {
@@ -139,7 +145,8 @@ export const useChatStore = create<State>()(
         name: 'chatStore',
         partialize: (state) => ({
           lastChatAppId: state.lastChatAppId,
-          lastChatId: state.lastChatId
+          lastChatId: state.lastChatId,
+          userLocalChatIds: state.userLocalChatIds
         })
       }
     )
